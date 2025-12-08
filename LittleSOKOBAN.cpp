@@ -42,8 +42,13 @@ int main()
     cout << "SOKOBAN 게임에 오신것을 환영합니다\n";
     cout << "게임을 시작하시려면 아무키나 입력해주세요\n";
 
+    bool bIsClear = false;
+    
     while(true)
     {
+        if (bIsClear)
+            break;
+        
         if(_kbhit())
         {
             //input
@@ -89,10 +94,39 @@ int main()
                     //nothing
                 }
                 //박스(3)이면 박스의 다음칸 확인
-                //박스 다음칸 빈공간이면 박스 밀어내기 가능
-                //박스 다음칸이 벽이면 이동 불가
-                //목표지점(4)이면 이동 후 클리어
-                
+                else if (nextPos == 3)
+                {
+                    //박스 다음칸 빈공간이면 박스 밀어내기 가능
+                    int dirX = nextX - playerX;
+                    int dirY = nextY - playerY;
+                    int boxNextX = nextX + dirX;
+                    int boxNextY = nextY + dirY;
+                    int boxNextPos = playMap[boxNextX][boxNextY];
+                    
+                    if (boxNextPos == 0 || boxNextPos == 4)
+                    {
+                        playMap[boxNextX][boxNextY] = 3; //box
+                        playMap[nextX][nextY] = 2; //player
+                        playMap[playerX][playerY] = 0; //isle
+                        
+                        playerX = nextX;
+                        playerY = nextY;
+                        
+                        //목표지점(4)이면 이동 후 클리어
+                        if (boxNextPos == 4)
+                        {
+                            bIsClear = true;
+                        }
+                    }
+                    //박스 다음칸이 벽이면 이동 불가
+                    else if (boxNextPos == 1)
+                    {
+                        //nothing
+                    }
+                    
+                    
+                }
+                //목표지점(4)이면 이동 후 복원
             }
             //Render
             {
@@ -136,6 +170,10 @@ int main()
             }
         }
     }
+    
+    cout << "게임을 클리어했습니다!" << endl;
+    char choice;
+    cin >> choice;
     
     return 0;
     
