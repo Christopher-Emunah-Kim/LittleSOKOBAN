@@ -7,6 +7,8 @@
 
 using namespace std;
 
+constexpr int MAP_SIZE = 10;
+
 struct Position
 {
     int x;
@@ -15,21 +17,39 @@ struct Position
 
 struct GameState
 {
-    array<array<int, 10>, 10> map;
+    array<array<int, MAP_SIZE>, MAP_SIZE> map;
     Position playerPos;
     bool bIsCleared;
 };
 
+bool IsEmpty(int cell) {return cell == 0;}
+bool IsWall(int cell) {return cell == 1;}
+bool IsPlayer(int cell) {return cell == 2;}
+bool IsBox(int cell) {return cell == 3;}
+bool IsGoal(int cell) {return cell == 4;}
 
-Position FindPlayerPos(const array<array<int, 10>, 10>& map)
+bool IsValidPosition(Position pos)
 {
-    for(int i = 0; i < 10; i++)
+    return pos.x >= 0 && pos.y >= 0 && pos.x < MAP_SIZE && pos.y < MAP_SIZE;
+}
+
+int GetCell(const array<array<int, MAP_SIZE>, MAP_SIZE>& map, Position pos)
+{
+    return map[pos.x][pos.y];
+}
+
+Position FindPlayerPos(const array<array<int, MAP_SIZE>, MAP_SIZE>& map)
+{
+    for(int i = 0; i < MAP_SIZE; i++)
     {
-        for(int j = 0; j < 10; j++)
+        for(int j = 0; j < MAP_SIZE; j++)
         {
-            if(map[i][j] == 2)
+            Position pos = {i, j};
+            int cell = GetCell(map, pos);
+            
+            if(IsPlayer(cell))
             {
-                return {i, j};
+                return pos;
             }
         }
     }
@@ -81,9 +101,9 @@ void RenderGame(const GameState& gameState)
     cout << "SOKOBAN 게임에 오신것을 환영합니다\n";
     cout << "====================================\n";
 
-    for(int x = 0; x < 10; x++)
+    for(int x = 0; x < MAP_SIZE; x++)
     {
-        for(int y = 0; y < 10; y++)
+        for(int y = 0; y < MAP_SIZE; y++)
         {
             switch(gameState.map[x][y])
             {
@@ -147,7 +167,7 @@ int main()
             char input = _getch();
             
             Position nextPos = AddPosition(state.playerPos, GetDirection(input));
-            int nextCell = state.map[nextPos.x][nextPos.y];
+            int nextCell = GetCell(state.map, nextPos);
             
             //빈공간(0)이면 이동가능
             if(nextCell == 0)
@@ -165,7 +185,7 @@ int main()
             else if (nextCell == 3)
             {
                 Position boxNextPos = AddPosition(nextPos, GetDirection(input));
-                int boxNextCell = state.map[boxNextPos.x][boxNextPos.y];
+                int boxNextCell = GetCell(state.map, boxNextPos);
                 
                 if (boxNextCell == 0 || boxNextCell == 4)
                 {
