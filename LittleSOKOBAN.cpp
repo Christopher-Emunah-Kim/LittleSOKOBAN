@@ -173,13 +173,18 @@ void HandleMoveToEmpty(GameState& state, Position direction)
     UpdatePlayerPos(state, state.playerPos, nextPos);
 }
 
-void HandlePushBox(GameState& state, Position direction)
+void HandlePushBox(GameState& state, Position direction, bool isGoal)
 {
     Position nextPos = AddPosition(state.playerPos, direction);
     Position boxNextPos = AddPosition(nextPos, direction);
                     
     UpdateBoxPos(state, nextPos, boxNextPos);
     UpdatePlayerPos(state, state.playerPos, nextPos);
+    
+    if (isGoal)
+    {
+        state.bIsCleared = true;
+    }
 }
 
 void RenderGame(const GameState& gameState)
@@ -263,14 +268,13 @@ int main()
                 }
                 break;
             case EMoveType::PUSHBOX:
+                {
+                    HandlePushBox(state, direction, false);
+                }
+                break;
             case EMoveType::BOXTOGOAL:
                 {
-                    HandlePushBox(state,direction);
-
-                    if (moveType == EMoveType::BOXTOGOAL)
-                    {
-                        state.bIsCleared = true;
-                    }
+                    HandlePushBox(state,direction, true);
                 }
                 break;
             default:
