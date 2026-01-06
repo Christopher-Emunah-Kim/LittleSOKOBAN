@@ -46,6 +46,24 @@ int GetCell(const array<array<int, MAP_SIZE>, MAP_SIZE>& map, Position pos)
     return map[pos.x][pos.y];
 }
 
+void SetCell(GameState& state, Position pos, int value)
+{
+    state.map[pos.x][pos.y] = value;
+}
+
+void UpdatePlayerPos(GameState& state, Position prevPos, Position nextPos)
+{
+    SetCell(state, prevPos, 0);
+    SetCell(state, nextPos, 2);
+    state.playerPos = nextPos;
+}
+
+void UpdateBoxPos(GameState& state, Position prevPos, Position nextPos)
+{
+    SetCell(state, prevPos, 0);
+    SetCell(state, nextPos, 3);
+}
+
 Position FindPlayerPos(const array<array<int, MAP_SIZE>, MAP_SIZE>& map)
 {
     for(int i = 0; i < MAP_SIZE; i++)
@@ -228,9 +246,7 @@ int main()
             case EMoveType::CANMOVE:
                 {
                     Position nextPos = AddPosition(state.playerPos, direction);
-                    state.map[state.playerPos.x][state.playerPos.y] = 0;
-                    state.map[nextPos.x][nextPos.y] = 2;
-                    state.playerPos = nextPos;
+                    UpdatePlayerPos(state, state.playerPos, nextPos);
                 }
                 break;
             case EMoveType::PUSHBOX:
@@ -241,10 +257,8 @@ int main()
                     
                     int boxNextCell = GetCell(state.map, boxNextPos);
                     
-                    state.map[boxNextPos.x][boxNextPos.y] = 3;
-                    state.map[nextPos.x][nextPos.y] = 2;
-                    state.map[state.playerPos.x][state.playerPos.y] = 0;
-                    state.playerPos = nextPos;
+                    UpdateBoxPos(state, nextPos, boxNextPos);
+                    UpdatePlayerPos(state, state.playerPos, nextPos);
                     
                     if (moveType == EMoveType::BOXTOGOAL)
                     {
