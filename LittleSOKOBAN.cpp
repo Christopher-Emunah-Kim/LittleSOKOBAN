@@ -167,6 +167,20 @@ EMoveType CheckMoveType(const GameState& state, Position dir)
     return EMoveType::INVALID;
 }
 
+void HandleMoveToEmpty(GameState& state, Position direction)
+{
+    Position nextPos = AddPosition(state.playerPos, direction);
+    UpdatePlayerPos(state, state.playerPos, nextPos);
+}
+
+void HandlePushBox(GameState& state, Position direction)
+{
+    Position nextPos = AddPosition(state.playerPos, direction);
+    Position boxNextPos = AddPosition(nextPos, direction);
+                    
+    UpdateBoxPos(state, nextPos, boxNextPos);
+    UpdatePlayerPos(state, state.playerPos, nextPos);
+}
 
 void RenderGame(const GameState& gameState)
 {
@@ -245,21 +259,14 @@ int main()
             {
             case EMoveType::CANMOVE:
                 {
-                    Position nextPos = AddPosition(state.playerPos, direction);
-                    UpdatePlayerPos(state, state.playerPos, nextPos);
+                    HandleMoveToEmpty(state, direction);
                 }
                 break;
             case EMoveType::PUSHBOX:
             case EMoveType::BOXTOGOAL:
                 {
-                    Position nextPos = AddPosition(state.playerPos, direction);
-                    Position boxNextPos = AddPosition(nextPos, direction);
-                    
-                    int boxNextCell = GetCell(state.map, boxNextPos);
-                    
-                    UpdateBoxPos(state, nextPos, boxNextPos);
-                    UpdatePlayerPos(state, state.playerPos, nextPos);
-                    
+                    HandlePushBox(state,direction);
+
                     if (moveType == EMoveType::BOXTOGOAL)
                     {
                         state.bIsCleared = true;
