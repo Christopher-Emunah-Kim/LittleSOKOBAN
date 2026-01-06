@@ -22,6 +22,14 @@ struct GameState
     bool bIsCleared;
 };
 
+enum class EMoveType
+{
+    INVALID,
+    CANMOVE,
+    PUSHBOX,
+    BOXTOGOAL
+};
+
 bool IsEmpty(int cell) {return cell == 0;}
 bool IsWall(int cell) {return cell == 1;}
 bool IsPlayer(int cell) {return cell == 2;}
@@ -92,6 +100,53 @@ Position GetDirection(char input)
 Position AddPosition(Position p1, Position p2)
 {
     return { p1.x + p2.x, p1.y + p2.y};
+}
+
+EMoveType CheckMoveType(const GameState& state, Position dir)
+{
+    Position nextPos = AddPosition(state.playerPos, dir);
+    
+    if (!IsValidPosition(nextPos))
+    {
+        return EMoveType::INVALID;
+    }
+    
+    int nextCell = GetCell(state.map, nextPos);
+    
+    if (IsEmpty(nextCell))
+    {
+        return EMoveType::CANMOVE;
+    }
+    
+    if (IsWall(nextCell))
+    {
+        return EMoveType::INVALID;
+    }
+    
+    if (IsBox(nextCell))
+    {
+        Position boxNextPos = AddPosition(nextPos, dir);
+        if (!IsValidPosition(boxNextPos))
+        {
+            return EMoveType::INVALID;
+        }
+        
+        int boxNextCell = GetCell(state.map, boxNextPos);
+        
+        if (IsEmpty(boxNextCell))
+        {
+            return EMoveType::PUSHBOX;
+        }
+        
+        if (IsGoal(boxNextCell))
+        {
+            return EMoveType::BOXTOGOAL;
+        }
+        
+        return EMoveType::INVALID;
+    }
+    
+    return EMoveType::INVALID;
 }
 
 
@@ -165,40 +220,43 @@ int main()
         {
             //input
             char input = _getch();
+            Position direction = GetDirection(input);
+            EMoveType moveType = CheckMoveType(state, direction);
             
-            Position nextPos = AddPosition(state.playerPos, GetDirection(input));
-            int nextCell = GetCell(state.map, nextPos);
-            
-            //빈공간(0)이면 이동가능
-            if(nextCell == 0)
+            switch (moveType)
             {
-                state.map[state.playerPos.x][state.playerPos.y] = 0;
-                state.map[nextPos.x][nextPos.y] = 2;
-                state.playerPos = nextPos;
-            }
-            //벽(1)이면 이동불가
-            else if(nextCell == 1)
-            {
-                //nothing
-            }
-            //박스(3)이면 박스의 다음칸 확인
-            else if (nextCell == 3)
-            {
-                Position boxNextPos = AddPosition(nextPos, GetDirection(input));
-                int boxNextCell = GetCell(state.map, boxNextPos);
-                
-                if (boxNextCell == 0 || boxNextCell == 4)
+            case EMoveType::CANMOVE:
                 {
+                    Position nextPos = AddPosition(state.playerPos, direction);
+                    state.map[state.playerPos.x][state.playerPos.y] = 0;
+                    state.map[nextPos.x][nextPos.y] = 2;
+                    state.playerPos = nextPos;
+                }
+                break;
+            case EMoveType::PUSHBOX:
+            case EMoveType::BOXTOGOAL:
+                {
+                    Position nextPos = AddPosition(state.playerPos, direction);
+                    Position boxNextPos = AddPosition(nextPos, direction);
+                    
+                    int boxNextCell = GetCell(state.map, boxNextPos);
+                    
                     state.map[boxNextPos.x][boxNextPos.y] = 3;
                     state.map[nextPos.x][nextPos.y] = 2;
                     state.map[state.playerPos.x][state.playerPos.y] = 0;
                     state.playerPos = nextPos;
                     
-                    if (boxNextCell == 4)
+                    if (moveType == EMoveType::BOXTOGOAL)
                     {
                         state.bIsCleared = true;
                     }
                 }
+                break;
+            default:
+                {
+                    cout << "도달이 불가능한 곳입니다." << endl;
+                }
+                break;
             }
             
             RenderGame(state);
