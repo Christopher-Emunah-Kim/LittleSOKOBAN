@@ -46,22 +46,28 @@ int GetCell(const array<array<int, MAP_SIZE>, MAP_SIZE>& map, Position pos)
     return map[pos.x][pos.y];
 }
 
-void SetCell(GameState& state, Position pos, int value)
+GameState SetCell(const GameState& state, Position pos, int value)
 {
-    state.map[pos.x][pos.y] = value;
+    GameState newState = state;
+    newState.map[pos.x][pos.y] = value;
+    return newState;
 }
 
-void UpdatePlayerPos(GameState& state, Position prevPos, Position nextPos)
+GameState UpdatePlayerPos(const GameState& state, Position prevPos, Position nextPos)
 {
-    SetCell(state, prevPos, 0);
-    SetCell(state, nextPos, 2);
-    state.playerPos = nextPos;
+    GameState newState = state;
+    newState = SetCell(newState, prevPos, 0);
+    newState = SetCell(newState, nextPos, 2);
+    newState.playerPos = nextPos;
+    return newState;
 }
 
-void UpdateBoxPos(GameState& state, Position prevPos, Position nextPos)
+GameState UpdateBoxPos(const GameState& state, Position prevPos, Position nextPos)
 {
-    SetCell(state, prevPos, 0);
-    SetCell(state, nextPos, 3);
+    GameState newState = state;
+    newState = SetCell(newState, prevPos, 0);
+    newState = SetCell(newState, nextPos, 3);
+    return newState;
 }
 
 Position FindPlayerPos(const array<array<int, MAP_SIZE>, MAP_SIZE>& map)
@@ -167,24 +173,27 @@ EMoveType CheckMoveType(const GameState& state, Position dir)
     return EMoveType::INVALID;
 }
 
-void HandleMoveToEmpty(GameState& state, Position direction)
+GameState HandleMoveToEmpty(const GameState& state, Position direction)
 {
     Position nextPos = AddPosition(state.playerPos, direction);
-    UpdatePlayerPos(state, state.playerPos, nextPos);
+    return UpdatePlayerPos(state, state.playerPos, nextPos);
 }
 
-void HandlePushBox(GameState& state, Position direction, bool isGoal)
+GameState HandlePushBox(const GameState& state, Position direction, bool isGoal)
 {
+    GameState newState = state;
     Position nextPos = AddPosition(state.playerPos, direction);
     Position boxNextPos = AddPosition(nextPos, direction);
                     
-    UpdateBoxPos(state, nextPos, boxNextPos);
-    UpdatePlayerPos(state, state.playerPos, nextPos);
+    newState = UpdateBoxPos(newState, nextPos, boxNextPos);
+    newState = UpdatePlayerPos(newState, state.playerPos, nextPos);
     
     if (isGoal)
     {
-        state.bIsCleared = true;
+        newState.bIsCleared = true;
     }
+    
+    return newState;
 }
 
 void RenderGame(const GameState& gameState)
@@ -264,17 +273,17 @@ int main()
             {
             case EMoveType::CANMOVE:
                 {
-                    HandleMoveToEmpty(state, direction);
+                    state = HandleMoveToEmpty(state, direction);
                 }
                 break;
             case EMoveType::PUSHBOX:
                 {
-                    HandlePushBox(state, direction, false);
+                    state = HandlePushBox(state, direction, false);
                 }
                 break;
             case EMoveType::BOXTOGOAL:
                 {
-                    HandlePushBox(state,direction, true);
+                    state = HandlePushBox(state,direction, true);
                 }
                 break;
             default:
