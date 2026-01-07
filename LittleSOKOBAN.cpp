@@ -22,7 +22,7 @@ struct GameState
     bool bIsCleared;
 };
 
-enum class EMoveType
+enum class EMoveType : uint8_t
 {
     INVALID,
     CANMOVE,
@@ -30,34 +30,47 @@ enum class EMoveType
     BOXTOGOAL
 };
 
-bool IsEmpty(int cell) {return cell == 0;}
-bool IsWall(int cell) {return cell == 1;}
-bool IsPlayer(int cell) {return cell == 2;}
-bool IsBox(int cell) {return cell == 3;}
-bool IsGoal(int cell) {return cell == 4;}
+enum class ECellType : uint8_t
+{
+    EMPTY = 0,
+    WALL = 1,
+    PLAYER = 2,
+    BOX = 3,
+    GOAL = 4,
+    PLAYERONGOAL = 5,
+    BOXONGOAL = 6
+};
+
+bool IsEmpty(ECellType cell) {return cell == ECellType::EMPTY;}
+bool IsWall(ECellType cell) {return cell == ECellType::WALL;}
+bool IsPlayer(ECellType cell) {return cell == ECellType::PLAYER;}
+bool IsBox(ECellType cell) {return cell == ECellType::BOX;}
+bool IsGoal(ECellType cell) {return cell == ECellType::GOAL;}
+bool IsPlayerOnGoal(ECellType cell) {return cell == ECellType::PLAYERONGOAL;}
+bool IsBoxOnGoal(ECellType cell){return cell == ECellType::BOXONGOAL;}
 
 bool IsValidPosition(Position pos)
 {
     return pos.x >= 0 && pos.y >= 0 && pos.x < MAP_SIZE && pos.y < MAP_SIZE;
 }
 
-int GetCell(const array<array<int, MAP_SIZE>, MAP_SIZE>& map, Position pos)
+ECellType GetCellType(const array<array<int, MAP_SIZE>, MAP_SIZE>& map, Position pos)
 {
-    return map[pos.x][pos.y];
+    return static_cast<ECellType>(map[pos.x][pos.y]);
 }
 
-GameState SetCell(const GameState& state, Position pos, int value)
+GameState SetCell(const GameState& state, Position pos, ECellType type)
 {
     GameState newState = state;
-    newState.map[pos.x][pos.y] = value;
+    newState.map[pos.x][pos.y] = static_cast<int>(type);
     return newState;
 }
 
 GameState UpdatePlayerPos(const GameState& state, Position prevPos, Position nextPos)
 {
     GameState newState = state;
-    newState = SetCell(newState, prevPos, 0);
-    newState = SetCell(newState, nextPos, 2);
+    newState = SetCell(newState, prevPos, ECellType::EMPTY);
+    newState = SetCell(newState, nextPos, ECellType::PLAYER);
     newState.playerPos = nextPos;
     return newState;
 }
@@ -65,8 +78,8 @@ GameState UpdatePlayerPos(const GameState& state, Position prevPos, Position nex
 GameState UpdateBoxPos(const GameState& state, Position prevPos, Position nextPos)
 {
     GameState newState = state;
-    newState = SetCell(newState, prevPos, 0);
-    newState = SetCell(newState, nextPos, 3);
+    newState = SetCell(newState, prevPos, ECellType::EMPTY);
+    newState = SetCell(newState, nextPos, ECellType::BOX);
     return newState;
 }
 
@@ -77,9 +90,9 @@ Position FindPlayerPos(const array<array<int, MAP_SIZE>, MAP_SIZE>& map)
         for(int j = 0; j < MAP_SIZE; j++)
         {
             Position pos = {i, j};
-            int cell = GetCell(map, pos);
+            ECellType type = GetCellType(map, pos);
             
-            if(IsPlayer(cell))
+            if(IsPlayer(type))
             {
                 return pos;
             }
@@ -135,19 +148,19 @@ EMoveType CheckMoveType(const GameState& state, Position dir)
         return EMoveType::INVALID;
     }
     
-    int nextCell = GetCell(state.map, nextPos);
+    ECellType nextCellType = GetCellType(state.map, nextPos);
     
-    if (IsEmpty(nextCell))
+    if (IsEmpty(nextCellType))
     {
         return EMoveType::CANMOVE;
     }
     
-    if (IsWall(nextCell))
+    if (IsWall(nextCellType))
     {
         return EMoveType::INVALID;
     }
     
-    if (IsBox(nextCell))
+    if (IsBox(nextCellType))
     {
         Position boxNextPos = AddPosition(nextPos, dir);
         if (!IsValidPosition(boxNextPos))
@@ -155,14 +168,14 @@ EMoveType CheckMoveType(const GameState& state, Position dir)
             return EMoveType::INVALID;
         }
         
-        int boxNextCell = GetCell(state.map, boxNextPos);
+        ECellType boxNextCellType = GetCellType(state.map, boxNextPos);
         
-        if (IsEmpty(boxNextCell))
+        if (IsEmpty(boxNextCellType))
         {
             return EMoveType::PUSHBOX;
         }
         
-        if (IsGoal(boxNextCell))
+        if (IsGoal(boxNextCellType))
         {
             return EMoveType::BOXTOGOAL;
         }
@@ -196,6 +209,45 @@ GameState HandlePushBox(const GameState& state, Position direction, bool isGoal)
     return newState;
 }
 
+
+GameState UpdateGame(const GameState& state, Position direction)
+{
+    EMoveType moveType = CheckMoveType(state, direction);
+            
+    switch (moveType)
+    {
+    case EMoveType::CANMOVE:
+        {
+            return HandleMoveToEmpty(state, direction);
+        }
+        break;
+    case EMoveType::PUSHBOX:
+        {
+            return HandlePushBox(state, direction, false);
+        }
+        break;
+    case EMoveType::BOXTOGOAL:
+        {
+            return HandlePushBox(state,direction, true);
+        }
+        break;
+    default:
+        {
+            cout << "도달이 불가능한 곳입니다." << endl;
+            return state;
+        }
+        break;
+    }
+}
+
+
+void RenderWelcomMsg()
+{
+    system("cls");
+    cout << "SOKOBAN 게임에 오신것을 환영합니다\n";
+    cout << "게임을 시작하시려면 아무키나 입력해주세요\n";
+}
+
 void RenderGame(const GameState& gameState)
 {
     system("cls");
@@ -206,26 +258,33 @@ void RenderGame(const GameState& gameState)
     {
         for(int y = 0; y < MAP_SIZE; y++)
         {
-            switch(gameState.map[x][y])
+            ECellType type = static_cast<ECellType>(gameState.map[x][y]);
+            switch(type)
             {
-            case 0:
-                cout << "  "; //isle
+            case ECellType::EMPTY:
+                cout << "  "; 
                 break;
-            case 1:
-                cout << "# "; //wall
+            case ECellType::WALL:
+                cout << "# "; 
                 break;
-            case 2:
-                cout << "@ "; //player
+            case ECellType::PLAYER:
+                cout << "@ "; 
                 break;
-            case 3:
-                cout << "B "; //box
+            case ECellType::BOX:
+                cout << "B "; 
                 break;
-            case 4:
-                cout << "$ "; //goal
+            case ECellType::GOAL:
+                cout << "$ "; 
+                break;
+            case ECellType::PLAYERONGOAL:
+                cout << "⊕ ";
+                break;
+            case ECellType::BOXONGOAL:
+                cout << "X ";
                 break;
 
             default:
-                cout << "  ";
+                cout << "  "; //EMPTY
                 break;
             }
         }
@@ -234,6 +293,16 @@ void RenderGame(const GameState& gameState)
             
     cout << "====================================\n";
     cout << "조작키 - W(upside) S(downside) A(lefside) D(rightside) Q(QuitGame)" << endl;
+}
+
+void RenderQuitGame()
+{
+    cout << "게임을 클리어했습니다!" << endl;
+    cout << "게임을 종료하시겠습니까?" << endl;
+    
+    char delay;
+    cin >> delay;
+    //여긴 구현안함.
 }
 
 int main()
@@ -255,52 +324,20 @@ int main()
         , false
     };
     
-    system("cls");
-    cout << "SOKOBAN 게임에 오신것을 환영합니다\n";
-    cout << "게임을 시작하시려면 아무키나 입력해주세요\n";
-
+    RenderWelcomMsg();
     
     while(!state.bIsCleared)
     {
         if(_kbhit())
         {
-            //input
             char input = _getch();
             Position direction = GetDirection(input);
-            EMoveType moveType = CheckMoveType(state, direction);
-            
-            switch (moveType)
-            {
-            case EMoveType::CANMOVE:
-                {
-                    state = HandleMoveToEmpty(state, direction);
-                }
-                break;
-            case EMoveType::PUSHBOX:
-                {
-                    state = HandlePushBox(state, direction, false);
-                }
-                break;
-            case EMoveType::BOXTOGOAL:
-                {
-                    state = HandlePushBox(state,direction, true);
-                }
-                break;
-            default:
-                {
-                    cout << "도달이 불가능한 곳입니다." << endl;
-                }
-                break;
-            }
-            
+            state = UpdateGame(state, direction);
             RenderGame(state);
         }
     }
     
-    cout << "게임을 클리어했습니다!" << endl;
-    char choice;
-    cin >> choice;
+    RenderQuitGame();
     
     return 0;
-    
 }
