@@ -8,6 +8,7 @@
 using namespace std;
 
 constexpr int MAP_SIZE = 10;
+constexpr int GOAL_COUNT = 2;
 
 struct Position
 {
@@ -75,11 +76,19 @@ GameState UpdatePlayerPos(const GameState& state, Position prevPos, Position nex
     return newState;
 }
 
-GameState UpdateBoxPos(const GameState& state, Position prevPos, Position nextPos)
+GameState UpdateBoxPos(const GameState& state, Position prevPos, Position nextPos, bool isGoal)
 {
     GameState newState = state;
     newState = SetCell(newState, prevPos, ECellType::EMPTY);
-    newState = SetCell(newState, nextPos, ECellType::BOX);
+    if (isGoal)
+    {
+        newState = SetCell(newState, nextPos, ECellType::BOXONGOAL);
+    }
+    else
+    {
+        newState = SetCell(newState, nextPos, ECellType::BOX);
+    }
+    
     return newState;
 }
 
@@ -155,7 +164,7 @@ EMoveType CheckMoveType(const GameState& state, Position dir)
         return EMoveType::CANMOVE;
     }
     
-    if (IsWall(nextCellType))
+    if (IsWall(nextCellType) || IsBoxOnGoal(nextCellType))
     {
         return EMoveType::INVALID;
     }
@@ -186,6 +195,43 @@ EMoveType CheckMoveType(const GameState& state, Position dir)
     return EMoveType::INVALID;
 }
 
+
+int CountBoxesOnGoals(const GameState& state)
+{
+    int count = 0;
+    
+    for(int i = 0; i < MAP_SIZE; i++)
+    {
+        for(int j = 0; j < MAP_SIZE; j++)
+        {
+            Position pos = {i, j};
+            ECellType type = GetCellType(state.map, pos);
+            
+            if(IsBoxOnGoal(type))
+            {
+                count++;
+            }
+        }
+    }
+    
+    return count;
+}
+
+bool CheckCleared(const GameState& state)
+{
+    bool bIsCleared = false;
+    
+    int boxOnGoalCount = CountBoxesOnGoals(state);
+    
+    if (boxOnGoalCount == GOAL_COUNT)
+    {
+        bIsCleared = true;
+    }
+    
+    return bIsCleared;
+}
+
+
 GameState HandleMoveToEmpty(const GameState& state, Position direction)
 {
     Position nextPos = AddPosition(state.playerPos, direction);
@@ -198,17 +244,16 @@ GameState HandlePushBox(const GameState& state, Position direction, bool isGoal)
     Position nextPos = AddPosition(state.playerPos, direction);
     Position boxNextPos = AddPosition(nextPos, direction);
                     
-    newState = UpdateBoxPos(newState, nextPos, boxNextPos);
+    newState = UpdateBoxPos(newState, nextPos, boxNextPos, isGoal);
     newState = UpdatePlayerPos(newState, state.playerPos, nextPos);
     
-    if (isGoal)
+    if (isGoal&&CheckCleared(newState))
     {
         newState.bIsCleared = true;
     }
     
     return newState;
 }
-
 
 GameState UpdateGame(const GameState& state, Position direction)
 {
@@ -239,6 +284,7 @@ GameState UpdateGame(const GameState& state, Position direction)
         break;
     }
 }
+
 
 
 void RenderWelcomMsg()
@@ -310,14 +356,14 @@ int main()
     GameState state = {
         {{
             {1,1,1,1,1,1,1,1,1,1},
+            {1,0,0,0,0,1,0,0,0,1},
+            {1,0,2,0,0,1,0,0,0,1},
             {1,0,0,0,0,0,0,0,0,1},
-            {1,0,2,0,0,0,0,0,0,1},
+            {1,0,3,0,0,0,3,0,0,1},
             {1,0,0,0,0,0,0,0,0,1},
-            {1,0,0,0,3,0,0,0,0,1},
-            {1,0,0,0,0,0,0,0,0,1},
-            {1,0,0,0,0,0,0,0,0,1},
-            {1,0,0,0,0,0,0,4,0,1},
-            {1,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,1,1,0,0,0,1},
+            {1,0,0,4,0,0,0,4,0,1},
+            {1,0,0,0,0,1,0,0,0,1},
             {1,1,1,1,1,1,1,1,1,1}
         }}
         , FindPlayerPos(state.map)
