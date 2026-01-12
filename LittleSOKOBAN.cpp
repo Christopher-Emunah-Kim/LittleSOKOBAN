@@ -351,39 +351,39 @@ void RenderQuitGame()
     //여긴 구현안함.
 }
 
-int main()
-{
-    GameState state = {
-        {{
-            {1,1,1,1,1,1,1,1,1,1},
-            {1,0,0,0,0,1,0,0,0,1},
-            {1,0,2,0,0,1,0,0,0,1},
-            {1,0,0,0,0,0,0,0,0,1},
-            {1,0,3,0,0,0,3,0,0,1},
-            {1,0,0,0,0,0,0,0,0,1},
-            {1,0,0,0,1,1,0,0,0,1},
-            {1,0,0,4,0,0,0,4,0,1},
-            {1,0,0,0,0,1,0,0,0,1},
-            {1,1,1,1,1,1,1,1,1,1}
-        }}
-        , FindPlayerPos(state.map)
-        , false
-    };
-    
-    RenderWelcomMsg();
-    
-    while(!state.bIsCleared)
-    {
-        if(_kbhit())
-        {
-            char input = _getch();
-            Position direction = GetDirection(input);
-            state = UpdateGame(state, direction);
-            RenderGame(state);
-        }
-    }
-    
-    RenderQuitGame();
-    
-    return 0;
-}
+// int main()
+// {
+//     GameState state = {
+//         {{
+//             {1,1,1,1,1,1,1,1,1,1},
+//             {1,0,0,0,0,1,0,0,0,1},
+//             {1,0,2,0,0,1,0,0,0,1},
+//             {1,0,0,0,0,0,0,0,0,1},
+//             {1,0,3,0,0,0,3,0,0,1},
+//             {1,0,0,0,0,0,0,0,0,1},
+//             {1,0,0,0,1,1,0,0,0,1},
+//             {1,0,0,4,0,0,0,4,0,1},
+//             {1,0,0,0,0,1,0,0,0,1},
+//             {1,1,1,1,1,1,1,1,1,1}
+//         }}
+//         , FindPlayerPos(state.map)
+//         , false
+//     };
+//     
+//     RenderWelcomMsg();
+//     
+//     while(!state.bIsCleared)
+//     {
+//         if(_kbhit())
+//         {
+//             char input = _getch();
+//             Position direction = GetDirection(input);
+//             state = UpdateGame(state, direction);
+//             RenderGame(state);
+//         }
+//     }
+//     
+//     RenderQuitGame();
+//     
+//     return 0;
+// }
