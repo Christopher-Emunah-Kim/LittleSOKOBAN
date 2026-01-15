@@ -21,8 +21,14 @@ int main()
     int boxX = 3;
     int boxY = 3;
     
-    int goalX = 8;
-    int goalY = 8;
+    int goal1X = 8;
+    int goal1Y = 8;
+    
+    int goal2X = 10;
+    int goal2Y = 10;
+    
+    int goal3X = 9;
+    int goal3Y = 9;
     
     string clearMsg = "게임이 클리어되었습니다!";
     
@@ -47,14 +53,22 @@ int main()
         COORD boxPos = { (SHORT)boxX, (SHORT)boxY };
         SetConsoleCursorPosition(hConsole, boxPos);
         cout << "B";
-        COORD goalPos = { (SHORT)goalX, (SHORT)goalY };
-        SetConsoleCursorPosition(hConsole, goalPos);
+        COORD goal1Pos = { (SHORT)goal1X, (SHORT)goal1Y };
+        SetConsoleCursorPosition(hConsole, goal1Pos);
+        cout << "G";
+        COORD goal2Pos = { (SHORT)goal2X, (SHORT)goal2Y };
+        SetConsoleCursorPosition(hConsole, goal2Pos);
+        cout << "G";
+        COORD goal3Pos = { (SHORT)goal3X, (SHORT)goal3Y };
+        SetConsoleCursorPosition(hConsole, goal3Pos);
         cout << "G";
         cout.flush();
         
-        if (boxX == goalX && boxY == goalY)
+        if ((boxX == goal1X && boxY == goal1Y)
+            || (boxX == goal2X && boxY == goal2Y)
+            || (boxX == goal3X && boxY == goal3Y))
         {
-            cout<< "\n\n\n";
+            cout<< "\n\n\n\n\n";
             cout << clearMsg << endl;
                        
             return 0;
