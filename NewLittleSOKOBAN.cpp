@@ -7,6 +7,8 @@ using namespace std;
 constexpr int WALL_COUNT = 3;
 constexpr int GOAL_COUNT = 3;
 constexpr int BOX_COUNT = 3;
+constexpr int MAP_HEIGHT = 15;
+constexpr int MAP_WIDTH = 15;
 
 struct Position
 {
@@ -61,7 +63,7 @@ int GetBoxIdxAt(const GameState& state, Position pos);
 KResult<GameState, string> ProcessInput(const GameState& currentState, const GameState& prevState, char input);
 GameState MovePlayer(const GameState& state, int dx, int dy);
 
-void RenderGame(const GameState& state);
+void RenderSokoban(const GameState& state);
 bool IsGameClear(const GameState& state);
 
 
@@ -76,11 +78,11 @@ int main()
     
     while (true)
     {
-        RenderGame(state);
+        RenderSokoban(state);
         
         if (IsGameClear(state))
         {
-            cout << "\n\n\n\n\n게임이 클리어되었습니다!" << endl;
+            cout << "\n게임이 클리어되었습니다!" << endl;
             break;
         }
         
@@ -207,37 +209,40 @@ GameState MovePlayer(const GameState& state, int dx, int dy)
     return newState;
 }
 
-void RenderGame(const GameState& state)
+void RenderSokoban(const GameState& state)
 {
     system("cls");
       
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD playerPos = state.playerPos;
-    SetConsoleCursorPosition(hConsole, playerPos);
-    cout << "@";
-        
-    for (int i = 0; i < BOX_COUNT; i++)
+    for (int y = 0; y < MAP_HEIGHT; y++)
+    
     {
-        COORD boxPos = state.boxes[i];
-        SetConsoleCursorPosition(hConsole, boxPos);
-        cout << "B";
+        for (int x = 0; x < MAP_WIDTH; x++)
+        {
+            Position currentPos = {x, y};
+            
+            if (currentPos == state.playerPos)
+            {
+                cout << "@ ";
+            }
+            else if (GetBoxIdxAt(state, currentPos) != -1)
+            {
+                cout << "B ";
+            }
+            else if (IsWallAt(currentPos))
+            {
+                cout << "# ";
+            }
+            else if (IsBoxAtGoal(currentPos))
+            {
+                cout << "G ";
+            }
+            else
+            {
+                cout << "  ";
+            }
+        }
+        cout << endl;
     }
-        
-    for (int i = 0; i < WALL_COUNT; i++)
-    {
-        COORD wallPos = Wall[i];
-        SetConsoleCursorPosition(hConsole, wallPos);
-        cout << "#";
-    }
-        
-    for (int i = 0; i < GOAL_COUNT; i++)
-    {
-        COORD goalPos = Goal[i];
-        SetConsoleCursorPosition(hConsole, goalPos);
-        cout << "G";
-    }
-        
-    cout.flush();
 }
 
 bool IsGameClear(const GameState& state)
