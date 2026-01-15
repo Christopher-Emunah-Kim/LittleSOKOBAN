@@ -12,6 +12,9 @@ int main()
 	int wallX = 5;
 	int wallY = 3;
     
+    int boxX = 3;
+    int boxY = 3;
+    
     while (true)
     {
         system("cls");
@@ -25,6 +28,10 @@ int main()
         COORD wallPos = { (SHORT)wallX, (SHORT)wallY };
         SetConsoleCursorPosition(hConsole, wallPos);
         cout << "#";
+        
+        COORD boxPos = { (SHORT)boxX, (SHORT)boxY };
+        SetConsoleCursorPosition(hConsole, boxPos);
+        cout << "B";
     
         char input = _getch();
     
@@ -34,18 +41,43 @@ int main()
         case 'W':
             {
                 int nextY = playerY - 1;
-                if (nextY != wallY || playerX != wallX)
+                if (nextY == wallY && playerX == wallX)
+                {
+                    //nothing
+                }
+                else if (nextY == boxY && playerX == boxX)
+                {
+                    int nextBoxY = boxY - 1;
+                    if (nextBoxY != wallY || boxX != wallX)
+                    {
+                        playerY = boxY;
+                        boxY = nextBoxY;
+                    }
+                }
+                else
                 {
                     playerY = nextY;
                 }
-                
             }
             break;
         case 's':
         case 'S':
             {
                 int nextY = playerY + 1;
-                if (nextY != wallY || playerX != wallX)
+                if (nextY == wallY && playerX == wallX)
+                {
+                    //nothing
+                }
+                else if (nextY == boxY && playerX == boxX)
+                {
+                    int nextBoxY = boxY + 1;
+                    if (nextBoxY != wallY || boxX != wallX)
+                    {
+                        playerY = boxY;
+                        boxY = nextBoxY;
+                    }
+                }
+                else
                 {
                     playerY = nextY;
                 }
@@ -55,7 +87,20 @@ int main()
         case 'A':
             {
                 int nextX = playerX - 1;
-                if (nextX != wallX || playerY != wallY)
+                if (nextX == wallX && playerY == wallY)
+                {
+                    
+                }
+                else if (nextX == boxX && playerY == boxY)
+                {
+                    int nextBoxX = boxX - 1;
+                    if (nextBoxX != wallX || boxY != wallY)
+                    {
+                        playerX = boxX;
+                        boxX = nextBoxX;
+                    }
+                }
+                else
                 {
                     playerX = nextX;
                 }
@@ -65,7 +110,20 @@ int main()
         case 'D':
             {
                 int nextX = playerX + 1;
-                if (nextX != wallX || playerY != wallY)
+                if (nextX == wallX && playerY == wallY)
+                {
+                    
+                }
+                else if (nextX == boxX && playerY == boxY)
+                {
+                    int nextBoxX = boxX + 1;
+                    if (nextBoxX != wallX || boxY != wallY)
+                    {
+                        playerX = boxX;
+                        boxX = nextBoxX;
+                    }
+                }
+                else
                 {
                     playerX = nextX;
                 }
