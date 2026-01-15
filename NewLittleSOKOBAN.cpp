@@ -36,6 +36,7 @@ GameState MovePlayer(const GameState& state, int dx, int dy);
 int main()
 { 
     GameState state = {5, 7, {3, 7, 8}, {3, 6, 2}, false};
+    GameState prevState = state;
     
     string clearMsg = "게임이 클리어되었습니다!";
     
@@ -92,12 +93,18 @@ int main()
         }
         
         char input = _getch();
-        if (input == 'q' || input == 'Q')
+        if (input == 'u' || input == 'U')
+        {
+            state = prevState;
+            continue;
+        }
+        else if (input == 'q' || input == 'Q')
         {
             cout << "게임이 종료되었습니다" << endl;
             return 0;
         }
         
+        prevState = state;
         state = ProcessInput(state, input);
     }
     
