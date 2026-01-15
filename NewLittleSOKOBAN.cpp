@@ -13,8 +13,6 @@ const int goalX[3] = {8, 10, 9};
 const int goalY[3] = {8, 10, 9};
 
 constexpr int BOX_COUNT = 3;
-// int boxX[3] = {3, 7, 8};
-// int boxY[3] = {3, 6, 2};
 
 struct GameState
 {
@@ -28,50 +26,23 @@ struct GameState
 
 bool IsWallAt(int InX, int InY);
 bool IsBoxAtGoal(int InX, int InY);
+
 int GetBoxIdxAt(const GameState& state, int InX, int InY);
 
 GameState ProcessInput(const GameState& currentState, char input);
 GameState MovePlayer(const GameState& state, int dx, int dy);
+
+void RenderGame(const GameState& state);
+
 
 int main()
 { 
     GameState state = {5, 7, {3, 7, 8}, {3, 6, 2}, false};
     GameState prevState = state;
     
-    string clearMsg = "게임이 클리어되었습니다!";
-    
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        
     while (true)
     {
-        system("cls");
-        
-        COORD playerPos = { (SHORT)state.playerX, (SHORT)state.playerY };
-        SetConsoleCursorPosition(hConsole, playerPos);
-        cout << "@";
-        
-        for (int i = 0; i < BOX_COUNT; i++)
-        {
-            COORD boxPos = { (SHORT)state.boxX[i], (SHORT)state.boxY[i] };
-            SetConsoleCursorPosition(hConsole, boxPos);
-            cout << "B";
-        }
-        
-        for (int i = 0; i < WALL_COUNT; i++)
-        {
-            COORD wallPos = { (SHORT)wallX[i], (SHORT)wallY[i] };
-            SetConsoleCursorPosition(hConsole, wallPos);
-            cout << "#";
-        }
-        
-        for (int i = 0; i < GOAL_COUNT; i++)
-        {
-            COORD goalPos = {(SHORT)goalX[i], (SHORT)goalY[i]};
-            SetConsoleCursorPosition(hConsole, goalPos);
-            cout << "G";
-        }
-        
-        cout.flush();
+        RenderGame(state);
         
         //game clear check
         bool isAllBoxesOnGoal = true;
@@ -87,6 +58,7 @@ int main()
         if (isAllBoxesOnGoal)
         {
             cout<< "\n\n\n\n\n";
+            string clearMsg = "게임이 클리어되었습니다!";
             cout << clearMsg << endl;
                        
             return 0;
@@ -218,4 +190,37 @@ GameState MovePlayer(const GameState& state, int dx, int dy)
     }
     
     return newState;
+}
+
+void RenderGame(const GameState& state)
+{
+    system("cls");
+      
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD playerPos = { (SHORT)state.playerX, (SHORT)state.playerY };
+    SetConsoleCursorPosition(hConsole, playerPos);
+    cout << "@";
+        
+    for (int i = 0; i < BOX_COUNT; i++)
+    {
+        COORD boxPos = { (SHORT)state.boxX[i], (SHORT)state.boxY[i] };
+        SetConsoleCursorPosition(hConsole, boxPos);
+        cout << "B";
+    }
+        
+    for (int i = 0; i < WALL_COUNT; i++)
+    {
+        COORD wallPos = { (SHORT)wallX[i], (SHORT)wallY[i] };
+        SetConsoleCursorPosition(hConsole, wallPos);
+        cout << "#";
+    }
+        
+    for (int i = 0; i < GOAL_COUNT; i++)
+    {
+        COORD goalPos = {(SHORT)goalX[i], (SHORT)goalY[i]};
+        SetConsoleCursorPosition(hConsole, goalPos);
+        cout << "G";
+    }
+        
+    cout.flush();
 }
