@@ -4,19 +4,16 @@
 
 using namespace std;
 
+constexpr int WALL_COUNT = 3;
+int wallX[3] = {5, 5, 4};
+int wallY[3] = {3, 4, 4};
+
+bool IsWallAt(int InX, int InY);
+
 int main()
 { 
     int playerX = 5;
     int playerY = 7;
-    
-	int wall1X = 5;
-	int wall1Y = 3;
-    
-    int wall2X = 5;
-    int wall2Y = 4;
-    
-    int wall3X = 4;
-    int wall3Y = 4;
     
     int boxX = 3;
     int boxY = 3;
@@ -41,15 +38,6 @@ int main()
         COORD playerPos = { (SHORT)playerX, (SHORT)playerY };
         SetConsoleCursorPosition(hConsole, playerPos);
         cout << "@";
-        COORD wall1Pos = { (SHORT)wall1X, (SHORT)wall1Y };
-        SetConsoleCursorPosition(hConsole, wall1Pos);
-        cout << "#";
-        COORD wall2Pos = { (SHORT)wall2X, (SHORT)wall2Y };
-        SetConsoleCursorPosition(hConsole, wall2Pos);
-        cout << "#";
-        COORD wall3Pos = { (SHORT)wall3X, (SHORT)wall3Y };
-        SetConsoleCursorPosition(hConsole, wall3Pos);
-        cout << "#";
         COORD boxPos = { (SHORT)boxX, (SHORT)boxY };
         SetConsoleCursorPosition(hConsole, boxPos);
         cout << "B";
@@ -62,6 +50,14 @@ int main()
         COORD goal3Pos = { (SHORT)goal3X, (SHORT)goal3Y };
         SetConsoleCursorPosition(hConsole, goal3Pos);
         cout << "G";
+        
+        for (int i = 0; i < WALL_COUNT; i++)
+        {
+            COORD wallPos = { (SHORT)wallX[i], (SHORT)wallY[i] };
+            SetConsoleCursorPosition(hConsole, wallPos);
+            cout << "#";
+        }
+        
         cout.flush();
         
         if ((boxX == goal1X && boxY == goal1Y)
@@ -82,18 +78,14 @@ int main()
         case 'W':
             {
                 int nextY = playerY - 1;
-                if ((nextY == wall1Y && playerX == wall1X) 
-                    || (nextY == wall2Y && playerX == wall2X)
-                    || (nextY == wall3Y && playerX == wall3X))
+                if (IsWallAt(playerX, nextY))
                 {
                     //nothing
                 }
                 else if (nextY == boxY && playerX == boxX)
                 {
                     int nextBoxY = boxY - 1;
-                    if ((nextBoxY != wall1Y || boxX != wall1X)
-                        &&(nextBoxY != wall2Y || boxX != wall2X)
-                        &&(nextBoxY != wall3Y || boxX != wall3X))
+                    if (!IsWallAt(boxX, nextBoxY))
                     {
                         playerY = boxY;
                         boxY = nextBoxY;
@@ -103,24 +95,21 @@ int main()
                 {
                     playerY = nextY;
                 }
+                
             }
             break;
         case 's':
         case 'S':
             {
                 int nextY = playerY + 1;
-                if ((nextY == wall1Y && playerX == wall1X) 
-                    || (nextY == wall2Y && playerX == wall2X)
-                    || (nextY == wall3Y && playerX == wall3X))
+                if (IsWallAt(playerX, nextY))
                 {
                     //nothing
                 }
-                else if (nextY == boxY && playerX == boxX)
+                else if(nextY == boxY && playerX == boxX)
                 {
                     int nextBoxY = boxY + 1;
-                    if ((nextBoxY != wall1Y || boxX != wall1X)
-                        &&(nextBoxY != wall2Y || boxX != wall2X)
-                        &&(nextBoxY != wall3Y || boxX != wall3X))
+                    if (!IsWallAt(boxX, nextBoxY))
                     {
                         playerY = boxY;
                         boxY = nextBoxY;
@@ -136,18 +125,14 @@ int main()
         case 'A':
             {
                 int nextX = playerX - 1;
-                if ((nextX == wall1X && playerY == wall1Y)
-                    ||(nextX == wall2X && playerY == wall2Y)
-                    ||(nextX == wall3X && playerY == wall3Y))
+                if (IsWallAt(nextX, playerY))
                 {
-                    
+                    //nothing
                 }
                 else if (nextX == boxX && playerY == boxY)
                 {
                     int nextBoxX = boxX - 1;
-                    if ((nextBoxX != wall1X || boxY != wall1Y)
-                        && (nextBoxX != wall2X || boxY != wall2Y)
-                        && (nextBoxX != wall3X || boxY != wall3Y))
+                    if (!IsWallAt(nextBoxX, boxY))
                     {
                         playerX = boxX;
                         boxX = nextBoxX;
@@ -163,18 +148,14 @@ int main()
         case 'D':
             {
                 int nextX = playerX + 1;
-                if ((nextX == wall1X && playerY == wall1Y)
-                    ||(nextX == wall2X && playerY == wall2Y)
-                    ||(nextX == wall3X && playerY == wall3Y))
+                if (IsWallAt(nextX, playerY))
                 {
-                    
+                    //nothing
                 }
                 else if (nextX == boxX && playerY == boxY)
                 {
                     int nextBoxX = boxX + 1;
-                    if ((nextBoxX != wall1X || boxY != wall1Y)
-                        && (nextBoxX != wall2X || boxY != wall2Y)
-                        && (nextBoxX != wall3X || boxY != wall3Y))
+                    if (!IsWallAt(nextBoxX, boxY))
                     {
                         playerX = boxX;
                         boxX = nextBoxX;
@@ -203,4 +184,18 @@ int main()
     }
     
     
+}
+
+
+bool IsWallAt(int InX, int InY)
+{
+    for (int i = 0; i < WALL_COUNT; i++)
+    {
+        if (InY == wallY[i] && InX == wallX[i])
+        {
+            return true;
+        }
+    }
+    
+    return false;
 }
