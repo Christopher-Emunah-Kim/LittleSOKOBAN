@@ -5,31 +5,42 @@
 using namespace std;
 
 constexpr int WALL_COUNT = 3;
-const int wallX[3] = {5, 5, 4};
-const int wallY[3] = {3, 4, 4};
-
 constexpr int GOAL_COUNT = 3;
-const int goalX[3] = {8, 10, 9};
-const int goalY[3] = {8, 10, 9};
-
 constexpr int BOX_COUNT = 3;
+
+struct Position
+{
+    int x;
+    int y;
+    
+    bool operator ==(const Position& rhs) const
+    {
+        return x == rhs.x && y == rhs.y;
+    }
+    
+    operator COORD() const
+    {
+        return {(SHORT)x, (SHORT)y};
+    }
+};
+
+Position Wall[3] = {{5,3}, {5,4}, {4,4}};
+Position Goal[3] = {{8, 8}, {10, 10}, {9, 9}};
 
 struct GameState
 {
-    int playerX;
-    int playerY;
-    int boxX[BOX_COUNT];
-    int boxY[BOX_COUNT];
+    Position playerPos;
+    Position boxes[BOX_COUNT];
     bool bIsGameClear;
 };
 
 
-bool IsWallAt(int InX, int InY);
-bool IsBoxAtGoal(int InX, int InY);
+bool IsWallAt(Position pos);
+bool IsBoxAtGoal(Position pos);
 
-int GetBoxIdxAt(const GameState& state, int InX, int InY);
+int GetBoxIdxAt(const GameState& state, Position pos);
 
-GameState ProcessInput(const GameState& currentState, char input);
+GameState ProcessInput(const GameState& currentState, const GameState& prevState, char input);
 GameState MovePlayer(const GameState& state, int dx, int dy);
 
 void RenderGame(const GameState& state);
@@ -38,7 +49,11 @@ bool IsGameClear(const GameState& state);
 
 int main()
 { 
-    GameState state = {5, 7, {3, 7, 8}, {3, 6, 2}, false};
+    GameState state = {
+        {5, 7}, 
+        {{3, 3}, {7, 6}, {8, 2}}
+        , false
+    };
     GameState prevState = state;
     
     while (true)
@@ -47,48 +62,35 @@ int main()
         
         if (IsGameClear(state))
         {
-            cout<< "\n\n\n\n\n";
-            string clearMsg = "게임이 클리어되었습니다!";
-            cout << clearMsg << endl;
-            return 0;
+            cout << "\n\n\n\n\n게임이 클리어되었습니다!" << endl;
+            break;
         }
         
         char input = _getch();
-        if (input == 'u' || input == 'U')
-        {
-            state = prevState;
-            continue;
-        }
-        else if (input == 'q' || input == 'Q')
-        {
-            cout << "게임이 종료되었습니다" << endl;
-            return 0;
-        }
-        
-        prevState = state;
-        state = ProcessInput(state, input);
+        state = ProcessInput(state, prevState, input);
     }
+    
+    return 0;
 }
 
 
-bool IsWallAt(int InX, int InY)
+bool IsWallAt(Position pos)
 {
     for (int i = 0; i < WALL_COUNT; i++)
     {
-        if (InX == wallX[i] && InY == wallY[i])
+        if (pos == Wall[i])
         {
             return true;
         }
     }
-    
     return false;
 }
 
-bool IsBoxAtGoal(int InX, int InY)
+bool IsBoxAtGoal(Position pos)
 {
     for (int i = 0; i < GOAL_COUNT; i++)
     {
-        if (InX == goalX[i] && InY == goalY[i])
+        if (pos == Goal[i])
         {
             return true;
         }
@@ -96,11 +98,11 @@ bool IsBoxAtGoal(int InX, int InY)
     return false;
 }
 
-int GetBoxIdxAt(const GameState& state, int InX, int InY)
+int GetBoxIdxAt(const GameState& state, Position pos)
 {
     for (int i = 0; i < BOX_COUNT; i++)
     {
-        if (InX == state.boxX[i] && InY == state.boxY[i])
+        if (pos == state.boxes[i])
         {
             return i;
         }
@@ -108,30 +110,30 @@ int GetBoxIdxAt(const GameState& state, int InX, int InY)
     return -1;
 }
 
-GameState ProcessInput(const GameState& currentState, char input)
+GameState ProcessInput(const GameState& currentState, const GameState& prevState, char input)
 {
     GameState newState = currentState;
     switch (input)
         {
-        case 'w':
-        case 'W':
+        case 'w': case 'W':
             {
                 return MovePlayer(newState, 0, -1);
             }
-        case 's':
-        case 'S':
+        case 's': case 'S':
             {
                 return MovePlayer(newState, 0, 1);
             }
-        case 'a':
-        case 'A':
+        case 'a': case 'A':
             {
                 return MovePlayer(newState, -1, 0);
             }
-        case 'd':
-        case 'D':
+        case 'd': case 'D':
             {
                 return MovePlayer(newState, 1, 0);
+            }
+        case 'u': case 'U':
+            {
+                return prevState;
             }
             
         default:
@@ -148,32 +150,31 @@ GameState MovePlayer(const GameState& state, int dx, int dy)
 {
     GameState newState = state;
     
-    int nextX = newState.playerX + dx;
-    int nextY = newState.playerY + dy;
+    int nextX = newState.playerPos.x + dx;
+    int nextY = newState.playerPos.y + dy;
+    Position nextPos = {nextX, nextY};
     
-    if (IsWallAt(nextX, nextY))
+    if (IsWallAt(nextPos))
     {
         return newState;
     }
     
-    int boxIdx = GetBoxIdxAt(newState, nextX, nextY);
+    int boxIdx = GetBoxIdxAt(newState, nextPos);
     if (boxIdx != -1)
     {
-        int nextBoxX = newState.boxX[boxIdx] + dx;
-        int nextBoxY = newState.boxY[boxIdx] + dy;
+        int nextBoxX = newState.boxes[boxIdx].x + dx;
+        int nextBoxY = newState.boxes[boxIdx].y + dy;
+        Position nextBoxPos = {nextBoxX, nextBoxY};
         
-        if (!IsWallAt(nextBoxX, nextBoxY) && (GetBoxIdxAt(newState, nextBoxX, nextBoxY) == -1))
+        if (!IsWallAt(nextBoxPos) && (GetBoxIdxAt(newState, nextPos) == -1))
         {
-            newState.playerX = nextX;
-            newState.playerY = nextY;
-            newState.boxX[boxIdx] = nextBoxX;
-            newState.boxY[boxIdx] = nextBoxY;
+            newState.playerPos = nextPos; 
+            newState.boxes[boxIdx] = nextBoxPos;
         }
     }
     else
     {
-        newState.playerX = nextX;
-        newState.playerY = nextY;
+        newState.playerPos = nextPos;
     }
     
     return newState;
@@ -184,27 +185,27 @@ void RenderGame(const GameState& state)
     system("cls");
       
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD playerPos = { (SHORT)state.playerX, (SHORT)state.playerY };
+    COORD playerPos = state.playerPos;
     SetConsoleCursorPosition(hConsole, playerPos);
     cout << "@";
         
     for (int i = 0; i < BOX_COUNT; i++)
     {
-        COORD boxPos = { (SHORT)state.boxX[i], (SHORT)state.boxY[i] };
+        COORD boxPos = state.boxes[i];
         SetConsoleCursorPosition(hConsole, boxPos);
         cout << "B";
     }
         
     for (int i = 0; i < WALL_COUNT; i++)
     {
-        COORD wallPos = { (SHORT)wallX[i], (SHORT)wallY[i] };
+        COORD wallPos = Wall[i];
         SetConsoleCursorPosition(hConsole, wallPos);
         cout << "#";
     }
         
     for (int i = 0; i < GOAL_COUNT; i++)
     {
-        COORD goalPos = {(SHORT)goalX[i], (SHORT)goalY[i]};
+        COORD goalPos = Goal[i];
         SetConsoleCursorPosition(hConsole, goalPos);
         cout << "G";
     }
@@ -216,7 +217,7 @@ bool IsGameClear(const GameState& state)
 {
     for (int i = 0; i < BOX_COUNT; i++)
     {
-        if (!IsBoxAtGoal(state.boxX[i], state.boxY[i]))
+        if (!IsBoxAtGoal(state.boxes[i]))
         {
             return false;
         }
