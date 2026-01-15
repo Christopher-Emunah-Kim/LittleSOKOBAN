@@ -34,13 +34,31 @@ struct GameState
     bool bIsGameClear;
 };
 
+template<typename T, typename E = string>
+struct KResult
+{
+    T value;
+    bool isSuccess;
+    E errorMsg;
+    
+    static KResult Success(T val)
+    {
+        return {val, true, {}};
+    }
+    
+    static KResult Failure(E err)
+    {
+        return {{}, false, err};
+    }
+};
+
 
 bool IsWallAt(Position pos);
 bool IsBoxAtGoal(Position pos);
 
 int GetBoxIdxAt(const GameState& state, Position pos);
 
-GameState ProcessInput(const GameState& currentState, const GameState& prevState, char input);
+KResult<GameState, string> ProcessInput(const GameState& currentState, const GameState& prevState, char input);
 GameState MovePlayer(const GameState& state, int dx, int dy);
 
 void RenderGame(const GameState& state);
@@ -67,7 +85,20 @@ int main()
         }
         
         char input = _getch();
-        state = ProcessInput(state, prevState, input);
+        
+        auto result = ProcessInput(state, prevState, input);
+        if (result.isSuccess)
+        {
+            if (input != 'u' && input != 'U')  //UNDO가 아니면 백업
+            {
+                prevState = state;
+            }
+            state = result.value;
+        }
+        else
+        {
+            cout << "Error : " << result.errorMsg << endl;
+        }
     }
     
     return 0;
@@ -110,40 +141,36 @@ int GetBoxIdxAt(const GameState& state, Position pos)
     return -1;
 }
 
-GameState ProcessInput(const GameState& currentState, const GameState& prevState, char input)
+KResult<GameState, string> ProcessInput(const GameState& currentState, const GameState& prevState, char input)
 {
-    GameState newState = currentState;
     switch (input)
         {
         case 'w': case 'W':
             {
-                return MovePlayer(newState, 0, -1);
+                return KResult<GameState, string>::Success(MovePlayer(currentState, 0, -1));
             }
         case 's': case 'S':
             {
-                return MovePlayer(newState, 0, 1);
+                return KResult<GameState, string>::Success(MovePlayer(currentState, 0, 1));
             }
         case 'a': case 'A':
             {
-                return MovePlayer(newState, -1, 0);
+                return KResult<GameState, string>::Success(MovePlayer(currentState, -1, 0));
             }
         case 'd': case 'D':
             {
-                return MovePlayer(newState, 1, 0);
+                return KResult<GameState, string>::Success(MovePlayer(currentState, 1, 0));
             }
         case 'u': case 'U':
             {
-                return prevState;
+                return KResult<GameState, string>::Success(prevState);
             }
             
         default:
             {
-                cout << "올바른 입력이 아닙니다\n";
+                return KResult<GameState, string>::Failure("올바른 입력이 아닙니다");
             }
-        break;
         }
-    
-    return currentState;
 }
 
 GameState MovePlayer(const GameState& state, int dx, int dy)
@@ -166,7 +193,7 @@ GameState MovePlayer(const GameState& state, int dx, int dy)
         int nextBoxY = newState.boxes[boxIdx].y + dy;
         Position nextBoxPos = {nextBoxX, nextBoxY};
         
-        if (!IsWallAt(nextBoxPos) && (GetBoxIdxAt(newState, nextPos) == -1))
+        if (!IsWallAt(nextBoxPos) && (GetBoxIdxAt(newState, nextBoxPos) == -1))
         {
             newState.playerPos = nextPos; 
             newState.boxes[boxIdx] = nextBoxPos;
