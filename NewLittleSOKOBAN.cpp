@@ -10,6 +10,16 @@ constexpr int BOX_COUNT = 3;
 constexpr int MAP_HEIGHT = 15;
 constexpr int MAP_WIDTH = 15;
 
+enum class EDirection
+{
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
+    UNDO,
+    INVALID
+};
+
 struct Position
 {
     int x;
@@ -59,8 +69,9 @@ bool IsWallAt(Position pos);
 bool IsBoxAtGoal(Position pos);
 
 int GetBoxIdxAt(const GameState& state, Position pos);
+EDirection ProcessInput(char input);
 
-KResult<GameState, string> ProcessInput(const GameState& currentState, const GameState& prevState, char input);
+KResult<GameState, string> UpdateSokoban(const GameState& currentState, const GameState& prevState, EDirection dir);
 GameState MovePlayer(const GameState& state, int dx, int dy);
 
 void RenderSokoban(const GameState& state);
@@ -87,11 +98,12 @@ int main()
         }
         
         char input = _getch();
+        EDirection dir = ProcessInput(input);
+        auto result = UpdateSokoban(state, prevState, dir);
         
-        auto result = ProcessInput(state, prevState, input);
         if (result.isSuccess)
         {
-            if (input != 'u' && input != 'U')  //UNDO가 아니면 백업
+            if (dir != EDirection::UNDO)  //UNDO가 아니면 백업
             {
                 prevState = state;
             }
@@ -143,27 +155,41 @@ int GetBoxIdxAt(const GameState& state, Position pos)
     return -1;
 }
 
-KResult<GameState, string> ProcessInput(const GameState& currentState, const GameState& prevState, char input)
+EDirection ProcessInput(char input)
 {
     switch (input)
+    {
+    case 'w': case 'W': return EDirection::UP;
+    case 's': case 'S': return EDirection::DOWN;
+    case 'a': case 'A': return EDirection::LEFT;
+    case 'd': case 'D': return EDirection::RIGHT;
+    case 'u': case 'U': return EDirection::UNDO;
+            
+    default: return EDirection::INVALID;
+    }
+}
+
+KResult<GameState, string> UpdateSokoban(const GameState& currentState, const GameState& prevState, EDirection dir)
+    {
+        switch (dir)
         {
-        case 'w': case 'W':
+        case EDirection::UP:
             {
                 return KResult<GameState, string>::Success(MovePlayer(currentState, 0, -1));
             }
-        case 's': case 'S':
+        case EDirection::DOWN:
             {
                 return KResult<GameState, string>::Success(MovePlayer(currentState, 0, 1));
             }
-        case 'a': case 'A':
+        case EDirection::LEFT:
             {
                 return KResult<GameState, string>::Success(MovePlayer(currentState, -1, 0));
             }
-        case 'd': case 'D':
+        case EDirection::RIGHT:
             {
                 return KResult<GameState, string>::Success(MovePlayer(currentState, 1, 0));
             }
-        case 'u': case 'U':
+        case EDirection::UNDO:
             {
                 return KResult<GameState, string>::Success(prevState);
             }
@@ -173,7 +199,7 @@ KResult<GameState, string> ProcessInput(const GameState& currentState, const Gam
                 return KResult<GameState, string>::Failure("올바른 입력이 아닙니다");
             }
         }
-}
+    }
 
 GameState MovePlayer(const GameState& state, int dx, int dy)
 {
