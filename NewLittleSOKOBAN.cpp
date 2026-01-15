@@ -12,17 +12,18 @@ constexpr int GOAL_COUNT = 3;
 const int goalX[3] = {8, 10, 9};
 const int goalY[3] = {8, 10, 9};
 
+constexpr int BOX_COUNT = 3;
+int boxX[3] = {3, 7, 8};
+int boxY[3] = {3, 6, 2};
 
 bool IsWallAt(int InX, int InY);
 bool IsBoxAtGoal(int InX, int InY);
+int GetBoxIdxAt(int InX, int InY);
 
 int main()
 { 
     int playerX = 5;
     int playerY = 7;
-    
-    int boxX = 3;
-    int boxY = 3;
     
     string clearMsg = "게임이 클리어되었습니다!";
     
@@ -35,9 +36,13 @@ int main()
         COORD playerPos = { (SHORT)playerX, (SHORT)playerY };
         SetConsoleCursorPosition(hConsole, playerPos);
         cout << "@";
-        COORD boxPos = { (SHORT)boxX, (SHORT)boxY };
-        SetConsoleCursorPosition(hConsole, boxPos);
-        cout << "B";
+        
+        for (int i = 0; i < BOX_COUNT; i++)
+        {
+            COORD boxPos = { (SHORT)boxX[i], (SHORT)boxY[i] };
+            SetConsoleCursorPosition(hConsole, boxPos);
+            cout << "B";
+        }
         
         for (int i = 0; i < WALL_COUNT; i++)
         {
@@ -56,7 +61,17 @@ int main()
         cout.flush();
         
         //game clear check
-        if (IsBoxAtGoal(boxX, boxY))
+        bool isAllBoxesOnGoal = true;
+        for (int i = 0; i < BOX_COUNT; i++)
+        {
+            if (!IsBoxAtGoal(boxX[i], boxY[i]))
+            {
+                isAllBoxesOnGoal = false;
+                break;
+            }
+        }
+        //game clear
+        if (isAllBoxesOnGoal)
         {
             cout<< "\n\n\n\n\n";
             cout << clearMsg << endl;
@@ -76,13 +91,14 @@ int main()
                 {
                     //nothing
                 }
-                else if (nextY == boxY && playerX == boxX)
+                else if (GetBoxIdxAt(playerX, nextY) != -1)
                 {
-                    int nextBoxY = boxY - 1;
-                    if (!IsWallAt(boxX, nextBoxY))
+                    int idx = GetBoxIdxAt(playerX, nextY);
+                    int nextBoxY = boxY[idx] - 1;
+                    if (!IsWallAt(boxX[idx], nextBoxY) && (GetBoxIdxAt(boxX[idx], nextBoxY) == -1))
                     {
-                        playerY = boxY;
-                        boxY = nextBoxY;
+                        playerY = boxY[idx];
+                        boxY[idx] = nextBoxY;
                     }
                 }
                 else
@@ -100,13 +116,14 @@ int main()
                 {
                     //nothing
                 }
-                else if(nextY == boxY && playerX == boxX)
+                else if(GetBoxIdxAt(playerX, nextY) != -1)
                 {
-                    int nextBoxY = boxY + 1;
-                    if (!IsWallAt(boxX, nextBoxY))
+                    int idx = GetBoxIdxAt(playerX, nextY);
+                    int nextBoxY = boxY[idx] + 1;
+                    if (!IsWallAt(boxX[idx], nextBoxY) && (GetBoxIdxAt(boxX[idx], nextBoxY) == -1))
                     {
-                        playerY = boxY;
-                        boxY = nextBoxY;
+                        playerY = boxY[idx];
+                        boxY[idx] = nextBoxY;
                     }
                 }
                 else
@@ -123,13 +140,14 @@ int main()
                 {
                     //nothing
                 }
-                else if (nextX == boxX && playerY == boxY)
+                else if (GetBoxIdxAt(nextX, playerY) != -1)
                 {
-                    int nextBoxX = boxX - 1;
-                    if (!IsWallAt(nextBoxX, boxY))
+                    int idx= GetBoxIdxAt(nextX, playerY);
+                    int nextBoxX = boxX[idx] - 1;
+                    if (!IsWallAt(nextBoxX, boxY[idx]) && (GetBoxIdxAt(nextBoxX, boxY[idx]) == -1))
                     {
-                        playerX = boxX;
-                        boxX = nextBoxX;
+                        playerX = boxX[idx];
+                        boxX[idx] = nextBoxX;
                     }
                 }
                 else
@@ -146,13 +164,14 @@ int main()
                 {
                     //nothing
                 }
-                else if (nextX == boxX && playerY == boxY)
+                else if (GetBoxIdxAt(nextX, playerY) != -1)
                 {
-                    int nextBoxX = boxX + 1;
-                    if (!IsWallAt(nextBoxX, boxY))
+                    int idx= GetBoxIdxAt(nextX, playerY);
+                    int nextBoxX = boxX[idx] + 1;
+                    if (!IsWallAt(nextBoxX, boxY[idx]) && (GetBoxIdxAt(nextBoxX, boxY[idx]) == -1))
                     {
-                        playerX = boxX;
-                        boxX = nextBoxX;
+                        playerX = boxX[idx];
+                        boxX[idx] = nextBoxX;
                     }
                 }
                 else
@@ -204,4 +223,16 @@ bool IsBoxAtGoal(int InX, int InY)
         }
     }
     return false;
+}
+
+int GetBoxIdxAt(int InX, int InY)
+{
+    for (int i = 0; i < BOX_COUNT; i++)
+    {
+        if (InX == boxX[i] && InY == boxY[i])
+        {
+            return i;
+        }
+    }
+    return -1;
 }
