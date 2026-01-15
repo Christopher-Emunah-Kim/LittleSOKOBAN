@@ -30,6 +30,8 @@ bool IsWallAt(int InX, int InY);
 bool IsBoxAtGoal(int InX, int InY);
 int GetBoxIdxAt(const GameState& state, int InX, int InY);
 
+GameState ProcessInput(const GameState& currentState, char input);
+
 int main()
 { 
     GameState state = {5, 7, {3, 7, 8}, {3, 6, 2}, false};
@@ -92,120 +94,13 @@ int main()
         }
         
         char input = _getch();
-    
-        switch (input)
+        if (input == 'q' || input == 'Q')
         {
-        case 'w':
-        case 'W':
-            {
-                int nextY = state.playerY - 1;
-                if (IsWallAt(state.playerX, nextY))
-                {
-                    //nothing
-                }
-                else if (GetBoxIdxAt(state, state.playerX, nextY) != -1)
-                {
-                    int idx = GetBoxIdxAt(state, state.playerX, nextY);
-                    int nextBoxY = state.boxY[idx] - 1;
-                    if (!IsWallAt(state.boxX[idx], nextBoxY) && (GetBoxIdxAt(state, state.boxX[idx], nextBoxY) == -1))
-                    {
-                        state.playerY = state.boxY[idx];
-                        state.boxY[idx] = nextBoxY;
-                    }
-                }
-                else
-                {
-                    state.playerY = nextY;
-                }
-                
-            }
-            break;
-        case 's':
-        case 'S':
-            {
-                int nextY = state.playerY + 1;
-                if (IsWallAt(state.playerX, nextY))
-                {
-                    //nothing
-                }
-                else if(GetBoxIdxAt(state, state.playerX, nextY) != -1)
-                {
-                    int idx = GetBoxIdxAt(state, state.playerX, nextY);
-                    int nextBoxY = state.boxY[idx] + 1;
-                    if (!IsWallAt(state.boxX[idx], nextBoxY) && (GetBoxIdxAt(state, state.boxX[idx], nextBoxY) == -1))
-                    {
-                        state.playerY = state.boxY[idx];
-                        state.boxY[idx] = nextBoxY;
-                    }
-                }
-                else
-                {
-                    state.playerY = nextY;
-                }
-            }
-            break;
-        case 'a':
-        case 'A':
-            {
-                int nextX = state.playerX - 1;
-                if (IsWallAt(nextX, state.playerY))
-                {
-                    //nothing
-                }
-                else if (GetBoxIdxAt(state, nextX, state.playerY) != -1)
-                {
-                    int idx= GetBoxIdxAt(state, nextX, state.playerY);
-                    int nextBoxX = state.boxX[idx] - 1;
-                    if (!IsWallAt(nextBoxX, state.boxY[idx]) && (GetBoxIdxAt(state, nextBoxX, state.boxY[idx]) == -1))
-                    {
-                        state.playerX = state.boxX[idx];
-                        state.boxX[idx] = nextBoxX;
-                    }
-                }
-                else
-                {
-                    state.playerX = nextX;
-                }
-            }
-            break;
-        case 'd':
-        case 'D':
-            {
-                int nextX = state.playerX + 1;
-                if (IsWallAt(nextX, state.playerY))
-                {
-                    //nothing
-                }
-                else if (GetBoxIdxAt(state, nextX, state.playerY) != -1)
-                {
-                    int idx= GetBoxIdxAt(state, nextX, state.playerY);
-                    int nextBoxX = state.boxX[idx] + 1;
-                    if (!IsWallAt(nextBoxX, state.boxY[idx]) && (GetBoxIdxAt(nextBoxX, state.boxY[idx]) == -1))
-                    {
-                        state.playerX = state.boxX[idx];
-                        state.boxX[idx] = nextBoxX;
-                    }
-                }
-                else
-                {
-                    state.playerX = nextX;
-                }
-            }
-            break;
-        case 'q':
-        case 'Q':
-            {
-                cout << "게임이 종료되었습니다" << endl;
-                return 0;
-            }
-            break;
-            
-        default:
-        {
-            cout << "올바른 입력이 아닙니다" << endl;
+            cout << "게임이 종료되었습니다" << endl;
+            return 0;
         }
-            break;
-        }
+        
+        state = ProcessInput(state, input);
     }
     
     
@@ -247,4 +142,117 @@ int GetBoxIdxAt(const GameState& state, int InX, int InY)
         }
     }
     return -1;
+}
+
+GameState ProcessInput(const GameState& currentState, char input)
+{
+    GameState newState = currentState;
+    switch (input)
+        {
+        case 'w':
+        case 'W':
+            {
+                int nextY = newState.playerY - 1;
+                if (IsWallAt(newState.playerX, nextY))
+                {
+                    //nothing
+                }
+                else if (GetBoxIdxAt(newState, newState.playerX, newState.playerY) != -1)
+                {
+                    int idx = GetBoxIdxAt(newState, newState.playerX, newState.playerY);
+                    int nextBoxY = newState.boxY[idx] - 1;
+                    if (!IsWallAt(newState.boxX[idx], nextBoxY) && (GetBoxIdxAt(newState, newState.boxX[idx], nextBoxY) == -1))
+                    {
+                        newState.playerY = newState.boxY[idx];
+                        newState.boxY[idx] = nextBoxY;
+                    }
+                }
+                else
+                {
+                    newState.playerY = nextY;
+                }
+                
+            }
+            break;
+        case 's':
+        case 'S':
+            {
+                int nextY = newState.playerY + 1;
+                if (IsWallAt(newState.playerX, nextY))
+                {
+                    //nothing
+                }
+                else if(GetBoxIdxAt(newState, newState.playerX, nextY) != -1)
+                {
+                    int idx = GetBoxIdxAt(newState, newState.playerX, nextY);
+                    int nextBoxY = newState.boxY[idx] + 1;
+                    if (!IsWallAt(newState.boxX[idx], nextBoxY) && (GetBoxIdxAt(newState, newState.boxX[idx], nextBoxY) == -1))
+                    {
+                        newState.playerY = newState.boxY[idx];
+                        newState.boxY[idx] = nextBoxY;
+                    }
+                }
+                else
+                {
+                    newState.playerY = nextY;
+                }
+            }
+            break;
+        case 'a':
+        case 'A':
+            {
+                int nextX = newState.playerX - 1;
+                if (IsWallAt(nextX, newState.playerY))
+                {
+                    //nothing
+                }
+                else if (GetBoxIdxAt(newState, nextX, newState.playerY) != -1)
+                {
+                    int idx= GetBoxIdxAt(newState, nextX, newState.playerY);
+                    int nextBoxX = newState.boxX[idx] - 1;
+                    if (!IsWallAt(nextBoxX, newState.boxY[idx]) && (GetBoxIdxAt(newState, nextBoxX, newState.boxY[idx]) == -1))
+                    {
+                        newState.playerX = newState.boxX[idx];
+                        newState.boxX[idx] = nextBoxX;
+                    }
+                }
+                else
+                {
+                    newState.playerX = nextX;
+                }
+            }
+            break;
+        case 'd':
+        case 'D':
+            {
+                int nextX = newState.playerX + 1;
+                if (IsWallAt(nextX, newState.playerY))
+                {
+                    //nothing
+                }
+                else if (GetBoxIdxAt(newState, nextX, newState.playerY) != -1)
+                {
+                    int idx= GetBoxIdxAt(newState, nextX, newState.playerY);
+                    int nextBoxX = newState.boxX[idx] + 1;
+                    if (!IsWallAt(nextBoxX, newState.boxY[idx]) && (GetBoxIdxAt(newState, nextBoxX, newState.boxY[idx]) == -1))
+                    {
+                        newState.playerX = newState.boxX[idx];
+                        newState.boxX[idx] = nextBoxX;
+                    }
+                }
+                else
+                {
+                    newState.playerX = nextX;
+                }
+            }
+            break;
+            
+        default:
+        {
+            cout << "올바른 입력이 아닙니다" << endl;
+        }
+            break;
+        }
+    
+    return newState;
 }
