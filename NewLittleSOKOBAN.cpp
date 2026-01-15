@@ -33,6 +33,7 @@ GameState ProcessInput(const GameState& currentState, char input);
 GameState MovePlayer(const GameState& state, int dx, int dy);
 
 void RenderGame(const GameState& state);
+bool IsGameClear(const GameState& state);
 
 
 int main()
@@ -44,23 +45,11 @@ int main()
     {
         RenderGame(state);
         
-        //game clear check
-        bool isAllBoxesOnGoal = true;
-        for (int i = 0; i < BOX_COUNT; i++)
-        {
-            if (!IsBoxAtGoal(state.boxX[i], state.boxY[i]))
-            {
-                isAllBoxesOnGoal = false;
-                break;
-            }
-        }
-        //game clear
-        if (isAllBoxesOnGoal)
+        if (IsGameClear(state))
         {
             cout<< "\n\n\n\n\n";
             string clearMsg = "게임이 클리어되었습니다!";
             cout << clearMsg << endl;
-                       
             return 0;
         }
         
@@ -79,8 +68,6 @@ int main()
         prevState = state;
         state = ProcessInput(state, input);
     }
-    
-    
 }
 
 
@@ -223,4 +210,17 @@ void RenderGame(const GameState& state)
     }
         
     cout.flush();
+}
+
+bool IsGameClear(const GameState& state)
+{
+    for (int i = 0; i < BOX_COUNT; i++)
+    {
+        if (!IsBoxAtGoal(state.boxX[i], state.boxY[i]))
+        {
+            return false;
+        }
+    }         
+    
+    return true;
 }
