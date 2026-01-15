@@ -13,17 +13,29 @@ const int goalX[3] = {8, 10, 9};
 const int goalY[3] = {8, 10, 9};
 
 constexpr int BOX_COUNT = 3;
-int boxX[3] = {3, 7, 8};
-int boxY[3] = {3, 6, 2};
+// int boxX[3] = {3, 7, 8};
+// int boxY[3] = {3, 6, 2};
+
+struct GameState
+{
+    int playerX;
+    int playerY;
+    int boxX[BOX_COUNT];
+    int boxY[BOX_COUNT];
+    bool bIsGameClear;
+};
+
 
 bool IsWallAt(int InX, int InY);
 bool IsBoxAtGoal(int InX, int InY);
-int GetBoxIdxAt(int InX, int InY);
+int GetBoxIdxAt(const GameState& state, int InX, int InY);
 
 int main()
 { 
-    int playerX = 5;
-    int playerY = 7;
+    GameState state = {5, 7, {3, 7, 8}, {3, 6, 2}, false};
+    
+    // int playerX = 5;
+    // int playerY = 7;
     
     string clearMsg = "게임이 클리어되었습니다!";
     
@@ -33,13 +45,13 @@ int main()
     {
         system("cls");
         
-        COORD playerPos = { (SHORT)playerX, (SHORT)playerY };
+        COORD playerPos = { (SHORT)state.playerX, (SHORT)state.playerY };
         SetConsoleCursorPosition(hConsole, playerPos);
         cout << "@";
         
         for (int i = 0; i < BOX_COUNT; i++)
         {
-            COORD boxPos = { (SHORT)boxX[i], (SHORT)boxY[i] };
+            COORD boxPos = { (SHORT)state.boxX[i], (SHORT)state.boxY[i] };
             SetConsoleCursorPosition(hConsole, boxPos);
             cout << "B";
         }
@@ -64,7 +76,7 @@ int main()
         bool isAllBoxesOnGoal = true;
         for (int i = 0; i < BOX_COUNT; i++)
         {
-            if (!IsBoxAtGoal(boxX[i], boxY[i]))
+            if (!IsBoxAtGoal(state.boxX[i], state.boxY[i]))
             {
                 isAllBoxesOnGoal = false;
                 break;
@@ -86,24 +98,24 @@ int main()
         case 'w':
         case 'W':
             {
-                int nextY = playerY - 1;
-                if (IsWallAt(playerX, nextY))
+                int nextY = state.playerY - 1;
+                if (IsWallAt(state.playerX, nextY))
                 {
                     //nothing
                 }
-                else if (GetBoxIdxAt(playerX, nextY) != -1)
+                else if (GetBoxIdxAt(state, state.playerX, nextY) != -1)
                 {
-                    int idx = GetBoxIdxAt(playerX, nextY);
-                    int nextBoxY = boxY[idx] - 1;
-                    if (!IsWallAt(boxX[idx], nextBoxY) && (GetBoxIdxAt(boxX[idx], nextBoxY) == -1))
+                    int idx = GetBoxIdxAt(state, state.playerX, nextY);
+                    int nextBoxY = state.boxY[idx] - 1;
+                    if (!IsWallAt(state.boxX[idx], nextBoxY) && (GetBoxIdxAt(state, state.boxX[idx], nextBoxY) == -1))
                     {
-                        playerY = boxY[idx];
-                        boxY[idx] = nextBoxY;
+                        state.playerY = state.boxY[idx];
+                        state.boxY[idx] = nextBoxY;
                     }
                 }
                 else
                 {
-                    playerY = nextY;
+                    state.playerY = nextY;
                 }
                 
             }
@@ -111,72 +123,72 @@ int main()
         case 's':
         case 'S':
             {
-                int nextY = playerY + 1;
-                if (IsWallAt(playerX, nextY))
+                int nextY = state.playerY + 1;
+                if (IsWallAt(state.playerX, nextY))
                 {
                     //nothing
                 }
-                else if(GetBoxIdxAt(playerX, nextY) != -1)
+                else if(GetBoxIdxAt(state, state.playerX, nextY) != -1)
                 {
-                    int idx = GetBoxIdxAt(playerX, nextY);
-                    int nextBoxY = boxY[idx] + 1;
-                    if (!IsWallAt(boxX[idx], nextBoxY) && (GetBoxIdxAt(boxX[idx], nextBoxY) == -1))
+                    int idx = GetBoxIdxAt(state, state.playerX, nextY);
+                    int nextBoxY = state.boxY[idx] + 1;
+                    if (!IsWallAt(state.boxX[idx], nextBoxY) && (GetBoxIdxAt(state, state.boxX[idx], nextBoxY) == -1))
                     {
-                        playerY = boxY[idx];
-                        boxY[idx] = nextBoxY;
+                        state.playerY = state.boxY[idx];
+                        state.boxY[idx] = nextBoxY;
                     }
                 }
                 else
                 {
-                    playerY = nextY;
+                    state.playerY = nextY;
                 }
             }
             break;
         case 'a':
         case 'A':
             {
-                int nextX = playerX - 1;
-                if (IsWallAt(nextX, playerY))
+                int nextX = state.playerX - 1;
+                if (IsWallAt(nextX, state.playerY))
                 {
                     //nothing
                 }
-                else if (GetBoxIdxAt(nextX, playerY) != -1)
+                else if (GetBoxIdxAt(state, nextX, state.playerY) != -1)
                 {
-                    int idx= GetBoxIdxAt(nextX, playerY);
-                    int nextBoxX = boxX[idx] - 1;
-                    if (!IsWallAt(nextBoxX, boxY[idx]) && (GetBoxIdxAt(nextBoxX, boxY[idx]) == -1))
+                    int idx= GetBoxIdxAt(state, nextX, state.playerY);
+                    int nextBoxX = state.boxX[idx] - 1;
+                    if (!IsWallAt(nextBoxX, state.boxY[idx]) && (GetBoxIdxAt(state, nextBoxX, state.boxY[idx]) == -1))
                     {
-                        playerX = boxX[idx];
-                        boxX[idx] = nextBoxX;
+                        state.playerX = state.boxX[idx];
+                        state.boxX[idx] = nextBoxX;
                     }
                 }
                 else
                 {
-                    playerX = nextX;
+                    state.playerX = nextX;
                 }
             }
             break;
         case 'd':
         case 'D':
             {
-                int nextX = playerX + 1;
-                if (IsWallAt(nextX, playerY))
+                int nextX = state.playerX + 1;
+                if (IsWallAt(nextX, state.playerY))
                 {
                     //nothing
                 }
-                else if (GetBoxIdxAt(nextX, playerY) != -1)
+                else if (GetBoxIdxAt(state, nextX, state.playerY) != -1)
                 {
-                    int idx= GetBoxIdxAt(nextX, playerY);
-                    int nextBoxX = boxX[idx] + 1;
-                    if (!IsWallAt(nextBoxX, boxY[idx]) && (GetBoxIdxAt(nextBoxX, boxY[idx]) == -1))
+                    int idx= GetBoxIdxAt(state, nextX, state.playerY);
+                    int nextBoxX = state.boxX[idx] + 1;
+                    if (!IsWallAt(nextBoxX, state.boxY[idx]) && (GetBoxIdxAt(nextBoxX, state.boxY[idx]) == -1))
                     {
-                        playerX = boxX[idx];
-                        boxX[idx] = nextBoxX;
+                        state.playerX = state.boxX[idx];
+                        state.boxX[idx] = nextBoxX;
                     }
                 }
                 else
                 {
-                    playerX = nextX;
+                    state.playerX = nextX;
                 }
             }
             break;
@@ -225,11 +237,11 @@ bool IsBoxAtGoal(int InX, int InY)
     return false;
 }
 
-int GetBoxIdxAt(int InX, int InY)
+int GetBoxIdxAt(const GameState& state, int InX, int InY)
 {
     for (int i = 0; i < BOX_COUNT; i++)
     {
-        if (InX == boxX[i] && InY == boxY[i])
+        if (InX == state.boxX[i] && InY == state.boxY[i])
         {
             return i;
         }
