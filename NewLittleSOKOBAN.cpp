@@ -15,24 +15,39 @@ int main()
     int boxX = 3;
     int boxY = 3;
     
+    int goalX = 8;
+    int goalY = 8;
+    
+    string clearMsg = "게임이 클리어되었습니다!";
+    
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        
     while (true)
     {
         system("cls");
         
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        
         COORD playerPos = { (SHORT)playerX, (SHORT)playerY };
         SetConsoleCursorPosition(hConsole, playerPos);
         cout << "@";
-        
         COORD wallPos = { (SHORT)wallX, (SHORT)wallY };
         SetConsoleCursorPosition(hConsole, wallPos);
         cout << "#";
-        
         COORD boxPos = { (SHORT)boxX, (SHORT)boxY };
         SetConsoleCursorPosition(hConsole, boxPos);
         cout << "B";
-    
+        COORD goalPos = { (SHORT)goalX, (SHORT)goalY };
+        SetConsoleCursorPosition(hConsole, goalPos);
+        cout << "G";
+        cout.flush();
+        
+        if (boxX == goalX && boxY == goalY)
+        {
+            cout<< "\n\n\n";
+            cout << clearMsg << endl;
+                       
+            return 0;
+        }
+        
         char input = _getch();
     
         switch (input)
